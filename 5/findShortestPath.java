@@ -2,87 +2,118 @@ import java.util.*;
 
 class findShortestPath{
     public static int inf=Integer.MAX_VALUE;
-    public static void DIJKSTRA(Node[] G, int s, Point[] w){
+
+    public static void DIJKSTRA(Graph[] G, int s, int[][] w){
         INIT_SS(G, s);
-        ArrayList<Point> Q = MIN_PRIORITY_QUEUE(w);
+
+        ArrayList<Graph> Q;
+        Q = MIN_PRIORITY_QUEUE(G);
 
         while(Q.size() != 0){
-            Point u = EXTRACT_MIN(Q);
+            Graph u = EXTRACT_MIN(Q);
 
             for(int i=0; i<w.length; i++){
-                if(w[i].getS() == u.getE())  RELAX(w[i].getS(), u.getE(), w);
-                else if(w[i].getE() == u.getS()) RELAX(w[i].getE(), u.getS(), w);
+                if(w[u.getNode()][i]!=inf) {
+                    RELAX(u, G[i], w);
+                }
             }
         }
     }
-    public static void INIT_SS(Node[] G, int s){
-        for(int i=0; i<G.length; i++){
-            G[i]=new Node();
 
+    public static void INIT_SS(Graph[] G, int s){
+        for(int i=0; i<G.length; i++){
+            G[i]=new Graph();
+            G[i].setNode(i);
             G[i].setD(inf);
-            G[i].setV(null);
+            //G[i].setAdj(null);
         }
         G[s].setD(0);
     }
 
-    public static ArrayList<Point> MIN_PRIORITY_QUEUE(Point[] A){
+    public static ArrayList<Graph> MIN_PRIORITY_QUEUE(Graph[] A){
         int heapsize=A.length;
-        ArrayList<Point> heap = new ArrayList<>();
+        ArrayList<Graph> heap = new ArrayList<>();
         for(int i=0; i<heapsize; i++) heap.add(A[i]);
-        for(int i=0; i<heapsize/2; i++){
-            MinHeapify(heap, i);
-        }
+
+        heapsize/=2;
+
+        for(int i=0; i<heapsize; i++) MinHeapify(heap, i);
         return heap;
     }
 
-    public static void MinHeapify(ArrayList<Point> A, int i){
+    public static void MinHeapify(ArrayList<Graph> A, int i){
         int l=i+1;
         int r=i+2;
-        int min;
+        int min=i;
 
-        if(l<=A.size() && A.get(l).getDis()<A.get(i).getDis()) min=l;
+        if(l<A.size()){if(A.get(l).getDis()<A.get(i).getDis()) min=l;}
         else min=i;
-        if(l<=A.size() && A.get(r).getDis()<A.get(min).getDis()) min=r;
+        if(r<A.size())if(A.get(r).getDis()<A.get(min).getDis()) min=r;
 
         if(i!=min){
-            Point flag=A.get(i);
+            Graph flag=A.get(i);
             A.set(i, A.get(min));
             A.set(min, flag);
             MinHeapify(A, min);
         }
     }
 
-    public static Point EXTRACT_MIN(ArrayList<Point> A){
-        Point min = A.get(0);
+    public static Graph EXTRACT_MIN(ArrayList<Graph> A){
+        Graph min = A.get(0);
         A.remove(0);
         MinHeapify(A, 0);
         return min;
     }
 
-    public static void RELAX(Point u, Point v, Point[] w){
-        if (v.getSis() > u.getDis() + w){
 
+    public static void RELAX(Graph u, Graph v, int[][] w){
+        if (v.getDis() > u.getDis() + w[u.getNode()][v.getNode()]){
+            v.setD(u.getDis() + w[u.getNode()][v.getNode()]);
+            v.setAdj(u.getPi());
+            v.addAdj(u.getNode());
         }
-v.d = u.d + w (u, v) v.  = u
     }
 
     public static void main(String[] args){
+        System.out.println("Input the number of nodes.");
         Scanner scanner = new Scanner(System.in);
 
         int H = scanner.nextInt();
-        Node[] G = new Node[H];
+        Graph[] G = new Graph[H];    //Graph adj-list with 1-dim
+        int[][] w=new int[H][H]; //weigh matrix(2-dim)
 
+        for(int i=0; i<H; i++)
+            for(int j=0; j<H; j++) w[i][j]=inf;
+
+        System.out.println("Input the number of edges.");
         int input = scanner.nextInt();
-        Point[] w=new Point[input];
 
+        System.out.println("Input the information of");
+        System.out.println("1.first node 2.second node 3.edge's weght.");
+        
         for(int i=0; i<input; i++){
             int s = scanner.nextInt();
             int e = scanner.nextInt();
             int dis = scanner.nextInt();
 
-            w[i]=new Point(s-1, e-1, dis);
-        }   
+            w[s][e]=w[e][s]=dis;
+        } 
 
+        System.out.println("Input the start node");
+        int s = scanner.nextInt();
+
+        DIJKSTRA(G, s, w);
+
+        System.out.println();
+        System.out.println("This is the final distances using Dijkstra's Algorithm");
+        for(int i=0; i<H; i++) {
+            System.out.println("node " + i + " : ");
+            System.out.print("      distance => " + G[i].getDis());
+            System.out.print("      path => ");
+            G[i].printAdj(); 
+            System.out.println();
+        }
     }
 }
+
 
